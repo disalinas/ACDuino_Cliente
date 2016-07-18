@@ -11,7 +11,7 @@ int encoderPinALast = LOW;
 //Pin connected to ST_CP of 74HC595
 int latchPin = 8; //RCK MARRON
 //Pin connected to SH_CP of 74HC595
-int clockPin = 19; //SCK ROJO
+int clockPin = 10; //SCK ROJO
 ////Pin connected to DS of 74HC595
 int dataPin = 9; // DIO NARANJA
 
@@ -72,6 +72,10 @@ void setup()
   pinMode(latchPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
+
+  pinMode(latchPin2, OUTPUT);
+  pinMode(clockPin2, OUTPUT);
+  pinMode(dataPin2, OUTPUT);
 }
 
 void loop()
