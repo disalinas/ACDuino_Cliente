@@ -7,12 +7,21 @@ int encoderA = LOW;
 int encoderB = LOW;
 int encoderPinALast = LOW;
 
+// PANEL 1
 //Pin connected to ST_CP of 74HC595
-int latchPin = 4; //RCK MARRON
+int latchPin = 8; //RCK MARRON
 //Pin connected to SH_CP of 74HC595
-int clockPin = 6; //SCK ROJO
+int clockPin = 10; //SCK ROJO
 ////Pin connected to DS of 74HC595
-int dataPin = 5; // DIO NARANJA
+int dataPin = 9; // DIO NARANJA
+
+// PANEL 2
+//Pin connected to ST_CP of 74HC595
+int latchPin2 = 4; //RCK MARRON
+//Pin connected to SH_CP of 74HC595
+int clockPin2 = 6; //SCK ROJO
+////Pin connected to DS of 74HC595
+int dataPin2 = 5; // DIO NARANJA
 
 int point_numbers[10] = {
   B01000000
@@ -57,12 +66,16 @@ int refresh = 1;
 
 void setup()
 {
-  Serial.begin(9600);
-  Serial.println("ACDUINO STARTING...");
+  Serial.begin(57600);
+  //Serial.println("ACDUINO STARTING...");
   //set pins to output because they are addressed in the main loop
   pinMode(latchPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
+
+  pinMode(latchPin2, OUTPUT);
+  pinMode(clockPin2, OUTPUT);
+  pinMode(dataPin2, OUTPUT);
 }
 
 void loop()
@@ -78,15 +91,15 @@ void loop()
 
 void processCommand(String command)
 {
-  Serial.println(command);
+  //Serial.println(command);
   int type = command.charAt(0);
   setData(type - '0', command.substring(2, command.length()));
 }
 
 void setData(int panel, String cadena)
 {
-  Serial.print("Panel: "); Serial.print(panel); Serial.println("");
-  Serial.print("Texto: "); Serial.print(cadena); Serial.println("");
+  //Serial.print("Panel: "); Serial.print(panel); Serial.println("");
+  //Serial.print("Texto: "); Serial.print(cadena); Serial.println("");
   
   int posicion = 7;
   int digitos[8];
@@ -138,7 +151,7 @@ void showPanel1(int posicion, int indice)
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, MSBFIRST, positions[posicion]);
   shiftOut(dataPin, clockPin, MSBFIRST, numbers[indice]);
-  digitalWrite(latchPin,HIGH);
+  digitalWrite(latchPin, HIGH);
   delay(refresh); 
 }
 
@@ -153,9 +166,9 @@ void showData2(char digit, int posicion)
 
 void showPanel2(int posicion, int indice)
 {
-  digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, MSBFIRST, positions[posicion]);
-  shiftOut(dataPin, clockPin, MSBFIRST, numbers[indice]);
-  digitalWrite(latchPin,HIGH);
+  digitalWrite(latchPin2, LOW);
+  shiftOut(dataPin2, clockPin2, MSBFIRST, positions[posicion]);
+  shiftOut(dataPin2, clockPin2, MSBFIRST, numbers[indice]);
+  digitalWrite(latchPin2, HIGH);
   delay(refresh); 
 }
