@@ -1,28 +1,3 @@
-char data[80];
-int delimiter = 59; // means: ; 
-String readString;
-
-//Encoder
-int encoderA = LOW;
-int encoderB = LOW;
-int encoderPinALast = LOW;
-
-// PANEL 1
-//Pin connected to ST_CP of 74HC595
-int latchPin = 8; //RCK MARRON
-//Pin connected to SH_CP of 74HC595
-int clockPin = 10; //SCK ROJO
-////Pin connected to DS of 74HC595
-int dataPin = 9; // DIO NARANJA
-
-// PANEL 2
-//Pin connected to ST_CP of 74HC595
-int latchPin2 = 4; //RCK MARRON
-//Pin connected to SH_CP of 74HC595
-int clockPin2 = 6; //SCK ROJO
-////Pin connected to DS of 74HC595
-int dataPin2 = 5; // DIO NARANJA
-
 int point_numbers[10] = {
   B01000000
   ,B01111001
@@ -62,13 +37,66 @@ int positions[] = {
   ,1
 };
 
+char data[80];
+int delimiter = 59; // means: ; 
+String readString;
+
+
+// PANEL 1
+//Pin connected to ST_CP of 74HC595
+int latchPin = 8; //RCK MARRON
+//Pin connected to SH_CP of 74HC595
+int clockPin = 10; //SCK ROJO
+////Pin connected to DS of 74HC595
+int dataPin = 9; // DIO NARANJA
+
+// PANEL 2
+//Pin connected to ST_CP of 74HC595
+int latchPin2 = 4; //RCK MARRON
+//Pin connected to SH_CP of 74HC595
+int clockPin2 = 6; //SCK ROJO
+////Pin connected to DS of 74HC595
+int dataPin2 = 5; // DIO NARANJA
+
+int cache1[8];
+int cache2[8];
+
 int refresh = 1;
+
+void setCache1()
+{
+  for (int i=0; i<8; i++)
+  {
+    cache1[i] = -1;
+
+    if (i != 3 && i != 5)
+    {
+      if (i == 4) // Gear
+        cache1[i] = 10;
+      else
+        cache1[i] = 0;
+    }
+  }
+}
+
+void setCache2()
+{
+  for (int i=0; i<8; i++)
+  {
+    cache2[i] = -1;
+
+    if (i != 5)
+      cache2[i] = 0;
+  }
+}
 
 void setup()
 {
-  Serial.begin(57600);
-  //Serial.println("ACDUINO STARTING...");
-  //set pins to output because they are addressed in the main loop
+  // SET CACHE TO DEFAULT VALUES
+  setCache1();
+  setCache2();
+
+  // CONFIGURE DISPLAYS OUTPUTS PINS
   pinMode(latchPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
@@ -76,10 +104,15 @@ void setup()
   pinMode(latchPin2, OUTPUT);
   pinMode(clockPin2, OUTPUT);
   pinMode(dataPin2, OUTPUT);
+
+  // OPEN SERIAL COMMUNICATION
+  Serial.begin(57600);
 }
 
 void loop()
 {
+  showPanels();
+
   while (Serial.available() > 0)
   {
     Serial.readBytesUntil(delimiter, data, 80);
@@ -106,28 +139,28 @@ void setData(int panel, String cadena)
   
   for (int i=7; i>=0; i--)
   {
-    showData(panel, cadena[i], posicion - i);
+    setCacheData(panel, cadena[i], posicion - i);
   }
 }
 
-void showData(int panel, int numero, int indice)
+// SET DATA
+void setCacheData(int panel, int numero, int indice)
 {
   switch (panel)
   {
     case 1:
-      showData1(numero, indice);
+      setData1(numero, indice);
       break;
     case 2:
-      showData2(numero, indice);
+      setData2(numero, indice);
       break;
     default:
       break;
   }
 }
 
-// MOSTRAR VUELTAS COMPLETADAS, MARCHA Y VELOCIDAD.
-
-void showData1(char digit, int posicion)
+// SET LAPS, GEAR AND SPEED IN CACHE1
+void setData1(char digit, int posicion)
 {
   if (3 == posicion || 5 == posicion) return;
   
@@ -143,32 +176,50 @@ void showData1(char digit, int posicion)
       indice--;
   }
   
-  showPanel1(posicion, indice);
+  cache1[posicion] = numbers[indice];
 }
 
-void showPanel1(int posicion, int indice)
-{
-  digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, MSBFIRST, positions[posicion]);
-  shiftOut(dataPin, clockPin, MSBFIRST, numbers[indice]);
-  digitalWrite(latchPin, HIGH);
-  delay(refresh); 
-}
-
-// MOSTRAR POSICIÓN Y REVOLUCIONES POR MINUTO
-void showData2(char digit, int posicion)
+// SET DATA AND RPM IN CACHE2
+void setData2(char digit, int posicion)
 {
   if (posicion == 5) return;
   
-  int indice = digit - '0';  
-  showPanel2(posicion, indice);
+  int indice = digit - '0';
+  cache2[posicion] = numbers[indice];
 }
 
-void showPanel2(int posicion, int indice)
+void showPanels()
 {
-  digitalWrite(latchPin2, LOW);
-  shiftOut(dataPin2, clockPin2, MSBFIRST, positions[posicion]);
-  shiftOut(dataPin2, clockPin2, MSBFIRST, numbers[indice]);
-  digitalWrite(latchPin2, HIGH);
-  delay(refresh); 
+  showPanel1();
+  showPanel2();
+}
+
+void showPanel1()
+{
+  for (int i=0; i<8; i++)
+  {
+    if (cache1[i] != -1)
+    {
+      digitalWrite(latchPin, LOW);
+      shiftOut(dataPin, clockPin, MSBFIRST, positions[i]);
+      shiftOut(dataPin, clockPin, MSBFIRST, numbers[cache1[i]]);
+      digitalWrite(latchPin, HIGH);
+      delay(refresh); 
+    }
+  }
+}
+
+void showPanel2()
+{
+  for (int i=0; i<8; i++)
+  {
+    if (cache2[i] != -1)
+    {
+      digitalWrite(latchPin2, LOW);
+      shiftOut(dataPin2, clockPin2, MSBFIRST, positions[i]);
+      shiftOut(dataPin2, clockPin2, MSBFIRST, numbers[cache2[i]]);
+      digitalWrite(latchPin2, HIGH);
+      delay(refresh); 
+    }
+  }
 }
