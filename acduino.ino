@@ -106,7 +106,7 @@ void setup()
   pinMode(dataPin2, OUTPUT);
 
   // OPEN SERIAL COMMUNICATION
-  Serial.begin(57600);
+  Serial.begin(9600);
 }
 
 void loop()
@@ -202,7 +202,7 @@ void showPanel1()
     {
       digitalWrite(latchPin, LOW);
       shiftOut(dataPin, clockPin, MSBFIRST, positions[i]);
-      shiftOut(dataPin, clockPin, MSBFIRST, numbers[cache1[i]]);
+      shiftOut(dataPin, clockPin, MSBFIRST, cache1[i]);
       digitalWrite(latchPin, HIGH);
       delay(refresh); 
     }
@@ -217,7 +217,7 @@ void showPanel2()
     {
       digitalWrite(latchPin2, LOW);
       shiftOut(dataPin2, clockPin2, MSBFIRST, positions[i]);
-      shiftOut(dataPin2, clockPin2, MSBFIRST, numbers[cache2[i]]);
+      shiftOut(dataPin2, clockPin2, MSBFIRST, cache2[i]);
       digitalWrite(latchPin2, HIGH);
       delay(refresh); 
     }
