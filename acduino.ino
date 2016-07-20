@@ -61,6 +61,9 @@ int dataPin2 = 5; // DIO NARANJA
 int cache1[8];
 int cache2[8];
 
+int gearLed = 7;
+int gearLedStatus = 0;
+
 int refresh = 1;
 
 void setCache1()
@@ -105,6 +108,9 @@ void setup()
   pinMode(clockPin2, OUTPUT);
   pinMode(dataPin2, OUTPUT);
 
+  // GEEAR LED CONFIGURATION
+  pinMode(gearLed, OUTPUT);
+  
   // OPEN SERIAL COMMUNICATION
   Serial.begin(9600);
 }
@@ -125,8 +131,28 @@ void loop()
 void processCommand(String command)
 {
   //Serial.println(command);
-  int type = command.charAt(0);
-  setData(type - '0', command.substring(2, command.length()));
+  char aux = command.charAt(0);
+  int type = aux - '0';
+  command = command.substring(2, command.length());
+  
+  if (type == 1 || type == 2)
+    setData(type, command);
+  else if (type == 3)
+    setRPMLed(command);
+}
+
+void setRPMLed(String cadena)
+{
+  char aux = cadena.charAt(0);
+  gearLedStatus = aux - '0';
+}
+
+void showRPMLed()
+{
+  if (gearLedStatus)
+    digitalWrite(gearLed, HIGH);
+  else 
+    digitalWrite(gearLed, LOW);
 }
 
 void setData(int panel, String cadena)
@@ -190,6 +216,7 @@ void setData2(char digit, int posicion)
 
 void showPanels()
 {
+  showRPMLed();
   showPanel1();
   showPanel2();
 }
